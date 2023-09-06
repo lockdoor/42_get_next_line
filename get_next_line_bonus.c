@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: pnamnil <pnamnil@student.42bangkok.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/09/06 12:21:49 by pnamnil           #+#    #+#             */
-/*   Updated: 2023/09/06 12:21:49 by pnamnil          ###   ########.fr       */
+/*   Created: 2023/09/06 12:22:10 by pnamnil           #+#    #+#             */
+/*   Updated: 2023/09/06 12:22:10 by pnamnil          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 
 static char	*ft_strdup_find_nl(char *s, char **nl)
 {
@@ -120,7 +120,7 @@ static char	*ft_find_nl(char **s, char *bf, int fd, int *read_ret)
 char	*get_next_line(int fd)
 {
 	char		*bf;
-	static char	*s;
+	static char	*s[10];
 	char		*nl;
 	int			read_ret;
 
@@ -130,15 +130,15 @@ char	*get_next_line(int fd)
 	if (!bf)
 		return (NULL);
 	read_ret = 0;
-	nl = ft_find_nl(&s, bf, fd, &read_ret);
+	nl = ft_find_nl(&s[fd], bf, fd, &read_ret);
 	if (read_ret == -1)
 	{
-		if (s)
-			free (s);
-		s = NULL;
+		if (s[fd])
+			free (s[fd]);
+		s[fd] = NULL;
 	}
 	free (bf);
-	if (!s)
+	if (!s[fd])
 		return (NULL);
-	return (ft_get_next_line(&s, nl));
+	return (ft_get_next_line(&s[fd], nl));
 }
