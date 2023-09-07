@@ -20,6 +20,15 @@
 #  define BUFFER_SIZE 42
 # endif
 
+typedef struct s_memo
+{
+    char    *s;
+    char    *bf;
+    char    *nl;
+    char    *nul;
+    int     read_ret;
+} t_memo;
+
 char	*get_next_line(int fd);
 
 // utils
