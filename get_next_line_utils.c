@@ -12,6 +12,7 @@
 
 #include "get_next_line.h"
 
+/* This function not same libft. It's implement for get_next_line */
 char	*ft_strchr(const char *s, int c)
 {
 	unsigned char	*t;
@@ -32,6 +33,7 @@ char	*ft_strchr(const char *s, int c)
 	return (NULL);
 }
 
+/* This function not same libft. It's implement for get_next_line */
 char	*ft_substr(const char *s, unsigned int start, size_t len)
 {
 	char	*tab;

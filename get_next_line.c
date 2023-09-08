@@ -11,134 +11,160 @@
 /* ************************************************************************** */
 
 #include "get_next_line.h"
+#include <stdio.h>
 
-static char	*ft_strdup_find_nl(char *s, char **nl)
+static void	ft_init_str(t_memo *memo)
 {
-	size_t	i;
-	char	*tab;
-
-	i = 0;
-	while (s[i])
-		i++ ;
-	tab = (char *) malloc (i + 1);
-	if (!tab)
-		return (NULL);
-	while (*s)
-	{
-		*tab = *s;
-		if (*tab == '\n' && *nl == NULL)
-			*nl = tab;
-		tab++ ;
-		s++ ;
-	}
-	*tab = 0;
-	return (tab - i);
-}
-
-static char	*ft_strjoin_find_nl(char *s1, char *s2, char **nl)
-{
-	char	*tab;
+	// printf ("init_str called!\n");
 	size_t	i;
 
-	i = 0;
-	tab = s1;
-	while (*tab++)
-		i++ ;
-	tab = s2;
-	while (*tab++)
-		i++ ;
-	tab = (char *) malloc (i + 1);
-	if (!tab)
-		return (NULL);
-	while (*s1)
-		*tab++ = *s1++;
-	while (*s2)
+	i = -1;
+	memo->s = (char *) malloc (sizeof (char) * memo->read_ret + 1);
+	while (memo->bf[++i] != 0)
 	{
-		*tab = *s2;
-		if (*tab == '\n' && *nl == NULL)
-			*nl = tab;
-		tab++ ;
-		s2++ ;
+		memo->s[i] = memo->bf[i];
+		if (memo->s[i] == '\n' && memo->nl == NULL)
+			memo->nl = &memo->s[i];
 	}
-	*tab = 0;
-	return (tab - i);
+	memo->s[i] = 0;
+	memo->nul = &memo->s[i];
+	// printf ("memo->s: %s\n", memo->s);
+	// printf ("last charecter in frist line: %c\n", *(memo->nl - 1));
+	// printf ("charecter before end: %c", *(memo->nul - 1));
 }
 
-static char	*ft_get_next_line(char	**str, char *nl)
+static void ft_join_str(t_memo *memo)
+{
+	// printf ("join_str called!\n");
+	char	*tab;
+	size_t	s_len;
+	size_t	new_len;
+	int		i;
+
+	s_len = memo->nul - memo->s;
+	new_len = s_len + memo->read_ret;
+	tab = (char *) malloc (new_len + 1);
+	i = -1;
+	while (++i < (int) s_len)
+		tab[i] = memo->s[i];
+	i = -1;
+	// printf ("memo->bf: %s\n", memo->bf);
+	while (++i < (int) memo->read_ret)
+	{
+		// find nl here
+		tab[i + s_len] = memo->bf[i];
+		if (tab[i + s_len] == '\n' && memo->nl == NULL)
+			memo->nl = &tab[i + s_len];
+	}
+	tab[i + s_len] = 0;
+	free (memo->s);
+	memo->nul = &tab[i + s_len];
+	memo->s = tab;
+	// printf ("memo->s: %s\n", memo->s);
+	// printf ("tab: %s\n", tab);
+	// printf ("s_len: %zu\n", s_len);
+}
+
+static void	ft_find_nl(t_memo *memo, int fd)
+{
+	// printf ("find_nl called!\n");
+	// memo->nl = ft_strchr(memo->s, '\n');
+	while (!memo->nl)
+	{
+		memo->read_ret = read(fd, memo->bf, BUFFER_SIZE);
+		if (memo->read_ret < 1)
+			break;
+		(memo->bf)[memo->read_ret] = 0;
+		if (!memo->s)
+		{
+			// memo->nul = &(memo->bf)[memo->read_ret];
+			ft_init_str (memo);
+			// printf ("memo->s: %s\n", memo->s);
+		}
+		else
+		{
+			ft_join_str (memo);
+		}
+		// printf ("memo->read_ret: %d\tmemo->nl: %p\n", memo->read_ret, memo->nl);
+		// printf ("memo->bf: %s\n", memo->bf);
+	}
+}
+
+static char *ft_get_next_line(t_memo *memo)
 {
 	char	*result;
-	char	*tmp;
+	int		i;
 
-	if (nl)
+	result = NULL;
+	if (memo->nl)
 	{
-		result = ft_substr (*str, 0, nl - *str + 1);
-		if (*(nl + 1) != 0)
+		result = (char *) malloc (memo->nl - memo->s + 1);
+
+		// make substr
+		i = -1;
+		while (++i < memo->nl - memo->s + 1)
+			result[i] = memo->s[i];
+		result[i] = 0;
+
+		// keep rest then find and save next new line
+		if (memo->s[i] != 0)
 		{
-			tmp = ft_strdup_find_nl (nl + 1, &nl);
-			free (*str);
-			*str = tmp;
+			char	*tab;
+			char	*next_nl;
+			next_nl = NULL;
+
+			tab = (char *) malloc(memo->nul - memo->nl);
+			i = -1;
+			while (memo->nl[++i + 1])
+			{
+				tab[i] = memo->nl[i + 1];
+				if (tab[i] == '\n' && next_nl == NULL)
+					next_nl = &tab[i];
+			}
+			tab[i] = 0;
+			memo->nul = &tab[i];
+			free (memo->s);
+			memo->s = tab;
+			memo->nl = next_nl;
 		}
 		else
 		{
-			free (*str);
-			*str = NULL;
+			memo->nl = NULL;
+			free(memo->s);
+			memo->s = NULL;
 		}
 	}
+
 	else
 	{
-		result = ft_strdup_find_nl(*str, &nl);
-		free (*str);
-		*str = NULL;
+		result = memo->s;
+		memo->s = NULL;		
 	}
+
 	return (result);
-}
-
-static char	*ft_find_nl(char **s, char *bf, int fd, int *read_ret)
-{
-	char	*nl;
-	char	*tmp;
-
-	nl = ft_strchr(*s, '\n');
-	while (!nl)
-	{
-		*read_ret = read(fd, bf, BUFFER_SIZE);
-		if (*read_ret < 1)
-			break ;
-		bf[*read_ret] = 0;
-		if (*s == NULL)
-			*s = ft_strdup_find_nl(bf, &nl);
-		else
-		{
-			tmp = ft_strjoin_find_nl(*s, bf, &nl);
-			free (*s);
-			*s = tmp;
-		}
-	}
-	return (nl);
 }
 
 char	*get_next_line(int fd)
 {
-	char		*bf;
-	static char	*s;
-	char		*nl;
-	int			read_ret;
+	// printf ("get_next_line called!\n");
+	static t_memo	memo;
 
 	if (fd < 0)
 		return (NULL);
-	bf = (char *) malloc (BUFFER_SIZE + 1);
-	if (!bf)
-		return (NULL);
-	read_ret = 0;
-	nl = ft_find_nl(&s, bf, fd, &read_ret);
-	if (read_ret == -1)
+	memo.bf = (char *) malloc (BUFFER_SIZE + 1);
+	if (!memo.bf)
+		return (NULL);	
+	if (!memo.nl)
+		ft_find_nl(&memo, fd);
+	free (memo.bf);
+	memo.bf = NULL;
+	if (memo.read_ret == -1)
 	{
-		if (s)
-			free (s);
-		s = NULL;
+		if (memo.s)
+			free (memo.s);
+		memo.s = NULL;
 	}
-	free (bf);
-	if (!s)
+	if (!memo.s)
 		return (NULL);
-	return (ft_get_next_line(&s, nl));
+	return (ft_get_next_line(&memo));
 }
