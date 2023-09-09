@@ -5,56 +5,139 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: pnamnil <pnamnil@student.42bangkok.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/09/04 09:39:20 by pnamnil           #+#    #+#             */
-/*   Updated: 2023/09/04 09:39:20 by pnamnil          ###   ########.fr       */
+/*   Created: 2023/09/09 08:32:48 by pnamnil           #+#    #+#             */
+/*   Updated: 2023/09/09 08:32:48 by pnamnil          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-/* This function not same libft. It's implement for get_next_line */
-char	*ft_strchr(const char *s, int c)
+/* 
+** init memo->s with memo->bf
+** find new line and set it to memo->nl
+** set null of memo->s to memo->null
+*/
+void	ft_init_str(t_memo *memo)
 {
-	unsigned char	*t;
-	unsigned char	cmp;
+	size_t	i;
 
-	if (s == NULL)
-		return (NULL);
-	t = (unsigned char *) s;
-	cmp = (unsigned char) c;
-	while (*t)
+	i = -1;
+	memo->s = (char *) malloc (sizeof (char) * memo->read_ret + 1);
+	while (memo->bf[++i] != 0)
 	{
-		if (*t == cmp)
-			return ((char *) t);
-		t++ ;
+		memo->s[i] = memo->bf[i];
+		if (memo->s[i] == '\n' && memo->nl == NULL)
+			memo->nl = &memo->s[i];
 	}
-	if (cmp == 0)
-		return ((char *) t);
-	return (NULL);
+	memo->s[i] = 0;
+	memo->nul = &memo->s[i];
 }
 
-/* This function not same libft. It's implement for get_next_line */
-char	*ft_substr(const char *s, unsigned int start, size_t len)
+/* 
+** join memo->s with memo->bf
+** find new line and set it to memo->nl
+** set null of memo->s to memo->null
+** set memo->s with new string joined and free old memo->s
+*/
+void	ft_join_str(t_memo *memo)
 {
 	char	*tab;
-	size_t	i;
-	size_t	j;
 	size_t	s_len;
+	size_t	new_len;
+	int		i;
 
-	s_len = 0;
-	while (s[s_len])
-		s_len++ ;
-	if (len > s_len)
-		len = s_len;
-	tab = (char *) malloc (len + 1);
-	if (!tab)
-		return (NULL);
-	i = 0;
-	while (s[i] && i < start)
-		i++ ;
-	j = 0;
-	while (s[i] && j < len)
-		tab[j++] = s[i++];
-	tab[j] = 0;
-	return (tab);
+	s_len = memo->nul - memo->s;
+	new_len = s_len + memo->read_ret;
+	tab = (char *) malloc (new_len + 1);
+	i = -1;
+	while (++i < (int) s_len)
+		tab[i] = memo->s[i];
+	i = -1;
+	while (++i < (int) memo->read_ret)
+	{
+		tab[i + s_len] = memo->bf[i];
+		if (tab[i + s_len] == '\n' && memo->nl == NULL)
+			memo->nl = &tab[i + s_len];
+	}
+	tab[i + s_len] = 0;
+	free (memo->s);
+	memo->nul = &tab[i + s_len];
+	memo->s = tab;
+}
+
+/*
+** read file to buffer (memo->bf)
+** if memo->s == NULL, init string to memo->s
+** else join memo->s with memo->bf
+*/
+void	ft_find_nl(t_memo *memo, int fd)
+{
+	while (!memo->nl)
+	{
+		memo->read_ret = read(fd, memo->bf, BUFFER_SIZE);
+		if (memo->read_ret < 1)
+			break ;
+		(memo->bf)[memo->read_ret] = 0;
+		if (!memo->s)
+			ft_init_str (memo);
+		else
+			ft_join_str (memo);
+	}
+}
+
+void	ft_keep_rest(t_memo *memo)
+{
+	char	*rest;
+	char	*next_nl;
+	int		i;
+
+	next_nl = NULL;
+	rest = (char *) malloc(memo->nul - memo->nl);
+	i = -1;
+	while (memo->nl[++i + 1])
+	{
+		rest[i] = memo->nl[i + 1];
+		if (rest[i] == '\n' && next_nl == NULL)
+			next_nl = &rest[i];
+	}
+	rest[i] = 0;
+	memo->nul = &rest[i];
+	free (memo->s);
+	memo->s = rest;
+	memo->nl = next_nl;
+}
+
+/*
+** This fn is get string with new line from memo->s
+** If have rest of memo->s use ft_keep_rest to make new memo->s
+** If not have new line, this file is read to eof from ft_find_nl
+** it return memo->s then set memo->s = NULL
+*/
+char	*ft_get_next_line(t_memo *memo)
+{
+	char	*result;
+	int		i;
+
+	if (memo->nl)
+	{
+		result = (char *) malloc (memo->nl - memo->s + 2);
+		i = -1;
+		while (++i < memo->nl - memo->s + 1)
+			result[i] = memo->s[i];
+		result[i] = 0;
+		if (memo->s[i] != 0)
+			ft_keep_rest(memo);
+		else
+		{
+			memo->nl = NULL;
+			free(memo->s);
+			memo->s = NULL;
+		}
+	}
+	else
+	{
+		result = memo->s;
+		memo->s = NULL;
+	}
+	return (result);
 }

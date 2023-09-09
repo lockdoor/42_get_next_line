@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: pnamnil <pnamnil@student.42bangkok.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/09/04 08:07:20 by pnamnil           #+#    #+#             */
-/*   Updated: 2023/09/04 08:07:20 by pnamnil          ###   ########.fr       */
+/*   Created: 2023/09/09 08:32:36 by pnamnil           #+#    #+#             */
+/*   Updated: 2023/09/09 08:32:36 by pnamnil          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,17 +22,20 @@
 
 typedef struct s_memo
 {
-    char    *s;
-    char    *bf;
-    char    *nl;
-    char    *nul;
-    int     read_ret;
-} t_memo;
+	char	*s;
+	char	*bf;
+	char	*nl;
+	char	*nul;
+	int		read_ret;
+}	t_memo;
 
 char	*get_next_line(int fd);
 
 // utils
-char	*ft_strchr(const char *s, int c);
-char	*ft_substr(const char *s, unsigned int start, size_t len);
+void	ft_init_str(t_memo *memo);
+void	ft_join_str(t_memo *memo);
+void	ft_find_nl(t_memo *memo, int fd);
+void	ft_keep_rest(t_memo *memo);
+char	*ft_get_next_line(t_memo *memo);
 
 #endif
