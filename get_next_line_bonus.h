@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line_bonus.h                              :+:      :+:    :+:   */
+/*   get_next_line_bonus.h                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: pnamnil <pnamnil@student.42bangkok.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/09 09:06:52 by pnamnil           #+#    #+#             */
-/*   Updated: 2023/09/09 09:08:53 by pnamnil          ###   ########.fr       */
+/*   Updated: 2023/09/13 15:46:19 by pnamnil          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,13 @@
 
 # include <stdlib.h>
 # include <unistd.h>
-# include <limits.h>
 
 # ifndef BUFFER_SIZE
 #  define BUFFER_SIZE 42
+# endif
+
+# ifndef FD_MAX
+#  define FD_MAX 1024
 # endif
 
 typedef struct s_memo
@@ -28,13 +31,15 @@ typedef struct s_memo
 	char	*nl;
 	char	*nul;
 	int		read_ret;
+	int		malloc_error;
+	int		read_end;
 }	t_memo;
 
 char	*get_next_line(int fd);
 
 // utils
-void	ft_init_str(t_memo *memo);
-void	ft_join_str(t_memo *memo);
+int		ft_init_str(t_memo *memo);
+int		ft_join_str(t_memo *memo);
 void	ft_find_nl(t_memo *memo, int fd);
 void	ft_keep_rest(t_memo *memo);
 char	*ft_get_next_line(t_memo *memo);

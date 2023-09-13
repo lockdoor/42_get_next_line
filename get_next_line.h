@@ -27,13 +27,15 @@ typedef struct s_memo
 	char	*nl;
 	char	*nul;
 	int		read_ret;
+	int		malloc_error;
+	int		read_end;
 }	t_memo;
 
 char	*get_next_line(int fd);
 
 // utils
-void	ft_init_str(t_memo *memo);
-void	ft_join_str(t_memo *memo);
+int		ft_init_str(t_memo *memo);
+int		ft_join_str(t_memo *memo);
 void	ft_find_nl(t_memo *memo, int fd);
 void	ft_keep_rest(t_memo *memo);
 char	*ft_get_next_line(t_memo *memo);
