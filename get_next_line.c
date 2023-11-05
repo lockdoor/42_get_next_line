@@ -96,7 +96,7 @@ char	*get_next_line(int fd)
 {
 	static t_memo	memo;
 
-	if (fd < 0 || BUFFER_SIZE < 1 || memo.malloc_error || memo.read_end)
+	if (fd < 0 || BUFFER_SIZE < 1 || memo.malloc_error)
 		return (NULL);
 	memo.bf = (char *) malloc (BUFFER_SIZE + 1);
 	if (!memo.bf)
